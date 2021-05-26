@@ -20,7 +20,7 @@ v-model：bind the [json object]
 ## 1. Install using npm
 
 ```
-npm install vue-json-editor --save
+npm install vue3-json-editor --save
 ```
 
 ## 2. Use vue-json-editor in the vue component
