@@ -1,4 +1,6 @@
-# vue-json-editor
+# vue3-json-editor 
+
+(fork vue-json-editor - credits original: [https://github.com/dirkliu/vue-json-editor](https://github.com/dirkliu/vue-json-editor))
 
 A json editor of vue.js
 
