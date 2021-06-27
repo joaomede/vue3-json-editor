@@ -44,7 +44,8 @@ export default defineComponent({
     function resetJson () {
       state.json = [
         { name: 'Dirk', age: 1234 },
-        { name: 'Jason' }
+        { name: 'Jason' },
+        { name: 'Augusto', age: 27 }
       ]
     }
 
