@@ -19,5 +19,8 @@
       "@/*": ["*"]
     }
   },
-  "exclude": ["./**/*.js", "node_modules", "components"]
+  "exclude": ["./**/*.js", "node_modules", "components"],
+  "include": [
+		"src/**/*.d.ts",
+	],
 }

@@ -4,7 +4,7 @@
     <Vue3JsonEditor v-model="state.json"
       :show-btns="true"
       mode="code"
-      lang="zh"
+      lang="it"
       @json-change="onJsonChange"
       @json-save="onJsonSave"
       @has-error="onError">
