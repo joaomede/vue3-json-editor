@@ -1,4 +1,5 @@
 import { DEFAULT_EXTENSIONS } from '@babel/core'
+import url from 'postcss-url'
 import babel from 'rollup-plugin-babel'
 import commonjs from 'rollup-plugin-commonjs'
 import resolve from 'rollup-plugin-node-resolve'
@@ -14,7 +15,13 @@ const plugins = [
     preprocessStyles: true,
     compileTemplate: true
   }),
-  postcss(),
+  postcss({
+    plugins: [
+      url({
+        url: 'inline'
+      })
+    ]
+  }),
   commonjs(),
   resolve({ mainFields: ['browser', 'jsnext:main', 'module', 'main'] }),
   replace({
