@@ -40,16 +40,22 @@
   "scripts": {
     "dev": "vue-cli-service serve",
     "build": "rimraf dist && rollup --config rollup.config.js",
+    "dev_vite": "vite",
+    "build_vite": "vue-tsc --noEmit && vite build",
     "test:unit": "vue-cli-service test:unit",
     "lint": "vue-cli-service lint",
     "commit": "git-cz",
-    "release": "standard-version && git push --tags"
+    "release": "standard-version && git push --tags",
+    "serve": "vite preview"
   },
   "dependencies": {
     "core-js": "^3.6.5",
-    "vue": "^3.0.0"
+    "vue": "^3.1.2"
   },
   "devDependencies": {
+    "@vitejs/plugin-vue": "^1.2.3",
+    "vite": "^2.3.8",
+    "vue-tsc": "^0.0.24",
     "@commitlint/cli": "^12.1.4",
     "@commitlint/config-conventional": "^12.1.4",
     "@types/jest": "^24.0.19",
@@ -61,7 +67,7 @@
     "@vue/cli-plugin-typescript": "~4.5.0",
     "@vue/cli-plugin-unit-jest": "~4.5.0",
     "@vue/cli-service": "~4.5.0",
-    "@vue/compiler-sfc": "^3.0.0",
+    "@vue/compiler-sfc": "^3.0.5",
     "@vue/eslint-config-standard": "^5.1.2",
     "@vue/eslint-config-typescript": "^7.0.0",
     "@vue/test-utils": "^2.0.0-0",
