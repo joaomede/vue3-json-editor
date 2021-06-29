@@ -37,7 +37,6 @@ const plugins = [
       exclude: ['./src', 'node_modules']
     }
   }),
-  terser(),
   babel({
     extensions: [...DEFAULT_EXTENSIONS, '.ts', '.tsx'],
     babelrc: true,
@@ -67,10 +66,15 @@ const builds = {
     format: 'umd',
     mode: 'production'
   },
-  esm: {
+  'esm-dev': {
     outFile: 'dist/vue3-json-editor.esm.js',
     format: 'es',
     mode: 'development'
+  },
+  'esm-prod': {
+    outFile: 'dist/vue3-json-editor.esm.prod.js',
+    format: 'es',
+    mode: 'production'
   }
 }
 
@@ -106,6 +110,10 @@ function createEntry (config) {
   }
 
   c.plugins = [...plugins]
+
+  if (config.mode === 'production') {
+    c.plugins.push(terser())
+  }
 
   return c
 }
