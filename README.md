@@ -4,16 +4,33 @@
 
 A json editor of vue.js
 
+# Support
+* Module ESM: Yes
+* Unpkg: Yes
+* CommonJS: Yes
+
+# How to run DEMO
+```sh
+# install
+npm install
+
+# for vue 3.x app
+npm run dev
+
+# for vite 3.x
+npm run dev_vite
+```
+
 ## Component properties
 
-v-model：bind the [json object]
-:show-btns: boolean, show the save button, default: true
-:expandedOnStart: boolean, expand the JSON editor on start for the modes 'tree', 'view', and 'form', default: false
-:mode: string, default: tree
-:lang: string, default: en
-@json-change: on json changed
-@json-save: on json save
-@has-error: on error
+v-model：bind the [json object]  
+:show-btns: boolean, show the save button, default: true  
+:expandedOnStart: boolean, expand the JSON editor on start for the modes 'tree', 'view', and 'form', default: false  
+:mode: string, default: tree  
+:lang: string, default: en  
+@json-change: on json changed  
+@json-save: on json save  
+@has-error: on error  
 
 # How to use
 
@@ -29,31 +46,37 @@ npm install vue3-json-editor --save
 <template>
   <div>
     <p>vue-json-editor</p>
-    <vue-json-editor v-model="json" :show-btns="true" :expandedOnStart="true" @json-change="onJsonChange"></vue-json-editor>
+    <vue-json-editor
+      v-model="json"
+      :show-btns="true"
+      :expandedOnStart="true
+      @json-change="onJsonChange"
+    />
   </div>
 </template>
 
 <script>
-  import vueJsonEditor from 'vue-json-editor'
+import { defineComponent, reactive, toRefs } from 'vue'
+import { Vue3JsonEditor } from 'vue3-json-editor'
 
-  export default {
-    data () {
-      return {
-        json: {
-          msg: 'demo of jsoneditor'
-        }
-      }
-    },
+export default defineComponent({
+  components: {
+    Vue3JsonEditor
+  },
+  setup () {
+    function onJsonChange (value) {
+      console.log('value:', value)
+    }
 
-    components: {
-      vueJsonEditor
-    },
+    const state = reactive({
+      json: {}
+    })
 
-    methods: {
-      onJsonChange (value) {
-        console.log('value:', value)
-      }
+    return {
+      ...toRefs(state),
+      onJsonChange
     }
   }
+})
 </script>
 ```
