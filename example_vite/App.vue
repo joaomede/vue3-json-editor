@@ -1,5 +1,4 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png" />
   <Vue3JsonEditor v-model="json" :show-btns="true" @json-change="onJsonChange"/>
 </template>
 
