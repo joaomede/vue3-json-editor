@@ -3,6 +3,7 @@
     <div class="example-demo">vue3-json-editor demo</div>
     <Vue3JsonEditor v-model="state.json"
       :show-btns="true"
+      :expandedOnStart="false"
       mode="code"
       lang="zh"
       @json-change="onJsonChange"
