@@ -46,7 +46,7 @@ npm install vue3-json-editor --save
 <template>
   <div>
     <p>vue-json-editor</p>
-    <vue-json-editor
+    <Vue3JsonEditor
       v-model="json"
       :show-btns="true"
       :expandedOnStart="true
