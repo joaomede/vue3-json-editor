@@ -24,6 +24,10 @@ export const Vue3JsonEditor = defineComponent({
     lang: {
       type: String,
       default: 'en'
+    },
+    editorId: {
+      type: String,
+      default: 'jsoneditor-vue'
     }
   },
   setup (props: any, { emit }) {
@@ -83,7 +87,7 @@ export const Vue3JsonEditor = defineComponent({
         }
       }
       state.editor = new JsonEditor(
-        document.querySelector('.jsoneditor-vue'),
+        document.querySelector("#" + props.editorId),
         options,
         state.json
       )
@@ -107,7 +111,7 @@ export const Vue3JsonEditor = defineComponent({
     return () => {
       return (
         <div>
-          <div class={'jsoneditor-vue'}></div>
+          <div id={props.editorId} class={'jsoneditor-vue'}></div>
           {props.showBtns !== false && (
             <div class={'jsoneditor-btns'}>
               <button
