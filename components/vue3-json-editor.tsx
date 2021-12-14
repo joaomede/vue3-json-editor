@@ -27,7 +27,15 @@ export const Vue3JsonEditor = defineComponent({
     },
     editorId: {
       type: String,
-      default: 'jsoneditor-vue'
+      default: function () {
+        let d = new Date().getTime()
+        let uuid = 'xxxxxxxx-xxxx-xxxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = (d + Math.random() * 16) % 16 | 0
+            d = Math.floor(d / 16)
+            return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16)
+        })
+        return ('jsoneditor-vue-' + uuid)
+      }
     }
   },
   setup (props: any, { emit }) {
