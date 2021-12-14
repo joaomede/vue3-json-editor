@@ -102,7 +102,7 @@ export const Vue3JsonEditor = defineComponent({
     })
 
     function expandAll () {
-      if (props.expandedOnStart && state.expandedModes.includes(props.mode) {
+      if (props.expandedOnStart && state.expandedModes.includes(props.mode)) {
         (state.editor as any).expandAll()
       }
     }
