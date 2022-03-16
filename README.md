@@ -49,7 +49,7 @@ npm install vue3-json-editor --save
     <Vue3JsonEditor
       v-model="json"
       :show-btns="true"
-      :expandedOnStart="true
+      :expandedOnStart="true"
       @json-change="onJsonChange"
     />
   </div>
