@@ -24,18 +24,6 @@ export const Vue3JsonEditor = defineComponent({
     lang: {
       type: String,
       default: 'en'
-    },
-    editorId: {
-      type: String,
-      default: function () {
-        let d = new Date().getTime()
-        let uuid = 'xxxxxxxx-xxxx-xxxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            var r = (d + Math.random() * 16) % 16 | 0
-            d = Math.floor(d / 16)
-            return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16)
-        })
-        return ('jsoneditor-vue-' + uuid)
-      }
     }
   },
   setup (props: any, { emit }) {
@@ -57,8 +45,10 @@ export const Vue3JsonEditor = defineComponent({
         zh: {
           save: '保存'
         }
-      }
+      },
+      uid: `jsoneditor-vue-${getCurrentInstance()?.uid}`
     })
+
     watch(
       () => props.modelValue as unknown as any,
       async (val) => {
@@ -95,7 +85,7 @@ export const Vue3JsonEditor = defineComponent({
         }
       }
       state.editor = new JsonEditor(
-        document.querySelector("#" + props.editorId),
+        document.querySelector(`#${state.uid}`),
         options,
         state.json
       )
@@ -118,7 +108,7 @@ export const Vue3JsonEditor = defineComponent({
     return () => {
       return (
         <div>
-          <div id={props.editorId} class={'jsoneditor-vue'}></div>
+          <div id={state.uid} class={'jsoneditor-vue'}></div>
           {props.showBtns !== false && (
             <div class={'jsoneditor-btns'}>
               <button
