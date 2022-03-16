@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.1.5](https://github.com/joaomede/vue3-json-editor/compare/v1.1.4...v1.1.5) (2022-03-16)
+
+
+### Bug Fixes
+
+* 🐛 changed uid method to internal component id ([4a3e663](https://github.com/joaomede/vue3-json-editor/commit/4a3e6632d13fc3531dbc1929ded48ead88953d71))
+
 ### [1.1.4](https://github.com/joaomede/vue3-json-editor/compare/v1.1.3...v1.1.4) (2022-01-22)
 
 ### [1.1.3](https://github.com/joaomede/vue3-json-editor/compare/v1.1.2...v1.1.3) (2021-08-01)
