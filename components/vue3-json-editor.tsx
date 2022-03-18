@@ -89,6 +89,8 @@ export const Vue3JsonEditor = defineComponent({
         options,
         state.json
       )
+
+      emit('provide-editor', state.editor)
     })
 
     function expandAll () {

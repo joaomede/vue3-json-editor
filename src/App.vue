@@ -8,6 +8,7 @@
       lang="zh"
       @json-change="onJsonChange"
       @json-save="onJsonSave"
+      @provide-editor="onEditorProvided"
       @has-error="onError">
     </Vue3JsonEditor>
     <button type="button" @click="resetJson">reset</button>
@@ -49,12 +50,17 @@ export default defineComponent({
       ]
     }
 
+    function onEditorProvided (editor: any) {
+      console.log(editor)
+    }
+
     return {
       state,
       resetJson,
       onJsonChange,
       onJsonSave,
-      onError
+      onError,
+      onEditorProvided
     }
   }
 })
