@@ -71,7 +71,7 @@ export const Vue3JsonEditor = defineComponent({
             state.error = false
             emit('json-change', json)
             state.internalChange = true
-            emit('input', json)
+            emit('update:modelValue', json)
             root.$nextTick(function () {
               state.internalChange = false
             })
