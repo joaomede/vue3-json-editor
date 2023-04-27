@@ -80,8 +80,9 @@ export const Vue3JsonEditor = defineComponent({
             emit('has-error', e)
           }
         },
-        onModeChange () {
-          expandAll()
+        onModeChange (mode) {
+          emit('mode-change', mode)
+          state.expandedModes.includes(mode) && expandAll()
         }
       }
       state.editor = new JsonEditor(
