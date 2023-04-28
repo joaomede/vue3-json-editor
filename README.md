@@ -30,6 +30,7 @@ v-model：bind the [json object]
 :lang: string, default: en  
 @json-change: on json changed  
 @json-save: on json save  
+@mode-change: on editor mode change, return the mode string  
 @has-error: on error  
 
 # How to use
@@ -51,6 +52,7 @@ npm install vue3-json-editor --save
       :show-btns="true"
       :expandedOnStart="true"
       @json-change="onJsonChange"
+      @mode-change="onModeChange"
     />
   </div>
 </template>
@@ -65,6 +67,10 @@ export default defineComponent({
   },
   setup () {
     function onJsonChange (value) {
+      console.log('value:', value)
+    }
+
+    function onModeChange (value) {
       console.log('value:', value)
     }
 
@@ -85,7 +91,7 @@ export default defineComponent({
 
 ```vue
 <template>
-  <Vue3JsonEditor v-model="json" :show-btns="true" @json-change="onJsonChange"/>
+  <Vue3JsonEditor v-model="json" :show-btns="true" @json-change="onJsonChange" @mode-change="onModeChange" />
 </template>
 
 <script lang="ts">
@@ -100,6 +106,10 @@ export default defineComponent({
   setup () {
     function onJsonChange () {
       //
+    }
+    
+    function onModeChange (value) {
+      console.log('value:', value)
     }
 
     const state = reactive({

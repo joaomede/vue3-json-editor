@@ -1,5 +1,5 @@
 <template>
-  <Vue3JsonEditor v-model="json" :show-btns="true" @json-change="onJsonChange"/>
+  <Vue3JsonEditor v-model="json" :show-btns="true" @json-change="onJsonChange" @mode-change="onModeChange"/>
 </template>
 
 <script lang="ts">
@@ -16,13 +16,18 @@ export default defineComponent({
       //
     }
 
+    function onModeChange (value) {
+      console.log('value:', value)
+    }
+
     const state = reactive({
       json: {}
     })
 
     return {
       ...toRefs(state),
-      onJsonChange
+      onJsonChange,
+      onModeChange
     }
   }
 })
