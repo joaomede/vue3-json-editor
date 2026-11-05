@@ -11,7 +11,7 @@ export default defineConfig({
     trace: 'retain-on-failure'
   },
   projects: [
-    { name: 'node', testMatch: /node\.spec\.mjs/ },
+    { name: 'node', testMatch: /(node|types)\.spec\.mjs/ },
     { name: 'chromium', testMatch: /browser\.spec\.mjs/, use: { ...devices['Desktop Chrome'] } }
   ],
   webServer: {

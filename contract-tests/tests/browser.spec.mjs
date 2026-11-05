@@ -2,12 +2,14 @@
 //
 // Convenção:
 //   test(...)        -> comportamento atual que NÃO pode mudar (contrato).
-//   test.fail(...)   -> bug conhecido (issue citada no título). Hoje falha de propósito.
-//                       Quando a correção entrar, o Playwright acusa "expected to fail" e o
-//                       teste deve virar test(...) normal.
+//   test.fail(...)   -> bug conhecido ainda sem correção (issue no título). Falha de propósito;
+//                       quando a correção entrar, o Playwright acusa "expected to fail" -> trocar
+//                       por test(...) + fixedIn('<versão da correção>').
+//   fixedIn(v)       -> bug corrigido na versão v: é falha esperada em versões anteriores (ex.: 1.1.5)
+//                       e contrato obrigatório de v em diante.
 import { test, expect } from '@playwright/test'
 import { createRequire } from 'node:module'
-import { KNOWN, openEditor, events, model, typeInTextMode, switchMode, menuModes } from './helpers.mjs'
+import { KNOWN, fixedIn, openEditor, events, model, typeInTextMode, switchMode, menuModes } from './helpers.mjs'
 
 const pkg = createRequire(import.meta.url)('vue3-json-editor/package.json')
 const DEFAULT_MODEL = { hello: 'world', n: 1, nested: { a: [1, 2, 3] } }
@@ -129,13 +131,15 @@ test.describe(`vue3-json-editor@${pkg.version} no browser`, () => {
       expect((await events(page, 'input')).filter((e) => e.payload?.domEvent)).toEqual([])
     })
 
-    test.fail('#30 provide-editor entrega a instância do editor após montar', async ({ page }) => {
+    test('#30 provide-editor entrega a instância do editor após montar', async ({ page }) => {
+      fixedIn('1.1.6')
       await openEditor(page)
       await expect.poll(() => events(page, 'provide-editor'), { timeout: 2000 })
         .toEqual([{ i: 0, name: 'provide-editor', payload: { editor: true, hasGet: true } }])
     })
 
-    test.fail('mode-change é emitido ao trocar de modo (PR #27)', async ({ page }) => {
+    test('mode-change é emitido ao trocar de modo (PR #27)', async ({ page }) => {
+      fixedIn('1.1.6')
       await openEditor(page)
       await switchMode(page, 'Text')
       await expect.poll(() => events(page, 'mode-change'), { timeout: 2000 })
@@ -154,13 +158,15 @@ test.describe(`vue3-json-editor@${pkg.version} no browser`, () => {
   })
 
   test.describe('modo code (Ace)', () => {
-    test.fail('#18 #23 #28 abrir o modo code não gera "Could not load worker"', async ({ page }) => {
+    test('#18 #23 #28 abrir o modo code não gera "Could not load worker"', async ({ page }) => {
+      fixedIn('1.1.6')
       const { problems } = await openEditor(page, { props: { mode: 'code' } })
       await page.waitForTimeout(500)
       expect(problems()).toEqual([])
     })
 
-    test.fail('#31 modo code sinaliza erro de sintaxe no editor', async ({ page }) => {
+    test('#31 modo code sinaliza erro de sintaxe no editor', async ({ page }) => {
+      fixedIn('1.1.6')
       await openEditor(page, { props: { mode: 'code' } })
       await page.locator('.ace_text-input').focus()
       await page.keyboard.press('Control+End')
@@ -181,6 +187,36 @@ test.describe(`vue3-json-editor@${pkg.version} no browser`, () => {
       await expect.poll(() => events(page, 'json-change')).toEqual([{ i: 1, name: 'json-change', payload: { segundo: true } }])
       expect(JSON.parse(await page.locator('textarea.jsoneditor-text').nth(0).inputValue())).toEqual(DEFAULT_MODEL)
       expect(problems()).toEqual([])
+    })
+  })
+
+  test.describe('UMD via <script> (unpkg, sem bundler)', () => {
+    for (const file of ['vue3-json-editor.umd.prod.js', 'vue3-json-editor.umd.js']) {
+      test(`${file}: expõe window["vue3-json-editor"].Vue3JsonEditor e renderiza sem erros`, async ({ page }) => {
+        const problems = []
+        page.on('console', (m) => { if (['warning', 'error'].includes(m.type())) problems.push(m.text()) })
+        page.on('pageerror', (e) => problems.push(e.message))
+        await page.goto(`/umd.html?file=${file}`)
+        await page.waitForFunction(() => window.__umd?.ready)
+        expect(await page.evaluate(() => window.__umd.globalKeys)).toContain('Vue3JsonEditor')
+        await expect(page.locator('.jsoneditor-vue > .jsoneditor')).toHaveClass(/jsoneditor-mode-tree/)
+        await expect(page.locator('.json-save-btn')).toHaveText('SAVE')
+        expect(await page.locator('.jsoneditor-outer').innerText()).toContain('umd')
+        expect(problems).toEqual([])
+      })
+    }
+  })
+
+  test.describe('CSS', () => {
+    test('estilos e ícones chegam sem o usuário importar CSS', async ({ page }) => {
+      await openEditor(page, { props: { showBtns: true } })
+      const styles = await page.evaluate(() => {
+        const btn = getComputedStyle(document.querySelector('.json-save-btn'))
+        const menuBtn = getComputedStyle(document.querySelector('.jsoneditor-menu > button'))
+        return { btnBg: btn.backgroundColor, menuIcon: menuBtn.backgroundImage }
+      })
+      expect(styles.btnBg).toBe('rgb(32, 160, 255)') // .json-save-btn do style.css do pacote
+      expect(styles.menuIcon).toMatch(/^url\("data:image\/svg\+xml/) // ícones inline, sem request extra
     })
   })
 

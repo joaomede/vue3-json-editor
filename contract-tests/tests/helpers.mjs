@@ -1,4 +1,21 @@
-import { expect } from '@playwright/test'
+import { expect, test } from '@playwright/test'
+import { createRequire } from 'node:module'
+
+export const pkgVersion = createRequire(import.meta.url)('vue3-json-editor/package.json').version
+
+const cmp = (a, b) => {
+  const [pa, pb] = [a, b].map((v) => v.split(/[.-]/).slice(0, 3).map(Number))
+  for (let i = 0; i < 3; i++) if (pa[i] !== pb[i]) return pa[i] - pb[i]
+  return 0
+}
+
+/**
+ * Bug corrigido na versão `version`: em versões anteriores do pacote o teste é falha esperada;
+ * de `version` em diante é contrato obrigatório. Chamar no início do teste.
+ */
+export function fixedIn (version) {
+  test.fail(cmp(pkgVersion, version) < 0, `bug presente antes da ${version}`)
+}
 
 // Warnings que sabemos que vêm do pacote e estão associados a issues abertas.
 // Um teste só os tolera se pedir explicitamente; qualquer outro warning/erro de console é falha.

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>vue3-json-editor UMD fixture</title>
+  </head>
+  <body>
+    <!-- Uso "sem bundler": Vue global + o UMD do pacote via <script>, como pelo unpkg.
+         ?file=<nome do arquivo em dist/> (default: vue3-json-editor.umd.prod.js) -->
+    <div id="app"></div>
+    <script src="/__nm/vue/dist/vue.global.js"></script>
+    <script>
+      const file = new URLSearchParams(location.search).get('file') || 'vue3-json-editor.umd.prod.js'
+      const s = document.createElement('script')
+      s.src = '/__nm/vue3-json-editor/dist/' + file
+      s.onload = () => {
+        const lib = window['vue3-json-editor']
+        window.__umd = { globalKeys: Object.keys(lib || {}) }
+        Vue.createApp({
+          render: () => Vue.h(lib.Vue3JsonEditor, { modelValue: { umd: true }, showBtns: true })
+        }).mount('#app')
+        window.__umd.ready = true
+      }
+      document.head.appendChild(s)
+    </script>
+  </body>
+</html>
