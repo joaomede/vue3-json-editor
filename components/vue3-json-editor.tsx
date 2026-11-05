@@ -1,7 +1,12 @@
 import { ComponentPublicInstance, defineComponent, getCurrentInstance, onMounted, reactive, watch } from 'vue'
 import JsonEditor from './assets/jsoneditor'
-import './assets/jsoneditor.css'
-import './style.css'
+import jsonEditorCss from './assets/jsoneditor.css?inline'
+import componentCss from './style.css?inline'
+import { injectStyle } from './inject-style'
+
+// Os estilos entram no documento quando o pacote é importado (o usuário não importa CSS).
+injectStyle(jsonEditorCss)
+injectStyle(componentCss)
 
 export const Vue3JsonEditor = defineComponent({
   props: {

@@ -9,16 +9,19 @@ A json editor of vue.js
 * Unpkg: Yes
 * CommonJS: Yes
 
-# How to run DEMO
+# Development
 ```sh
 # install
 npm install
 
-# for vue 3.x app
+# run the demo (demo/) against the component source
 npm run dev
 
-# for vite 3.x
-npm run dev_vite
+# build the library into dist/
+npm run build
+
+# build, pack and run the contract test suite (contract-tests/) against the packed package
+npm run test:contract
 ```
 
 ## Component properties

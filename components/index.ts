@@ -1,2 +1,1 @@
-export * from './vue3-json-editor';
-
+export * from './vue3-json-editor'
