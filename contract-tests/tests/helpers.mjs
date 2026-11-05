@@ -1,0 +1,64 @@
+import { expect } from '@playwright/test'
+
+// Warnings que sabemos que vêm do pacote e estão associados a issues abertas.
+// Um teste só os tolera se pedir explicitamente; qualquer outro warning/erro de console é falha.
+export const KNOWN = {
+  // #18 #23 #28 #31 — Ace não cria o worker porque o bundle strict transforma `this` global em undefined
+  aceWorker: /Could not load worker/
+}
+
+// Ruído do próprio Vite/ambiente, não do pacote.
+const NOISE = [/^\[vite\]/, /Download the Vue Devtools/]
+
+/**
+ * Abre o fixture com props/model/count e começa a coletar console e erros de página.
+ * Retorna { page, problems() }.
+ */
+export async function openEditor (page, { props, model, count } = {}) {
+  const logs = []
+  page.on('console', (m) => {
+    if (m.type() !== 'warning' && m.type() !== 'error') return
+    const text = m.text()
+    if (NOISE.some((re) => re.test(text))) return
+    logs.push({ type: m.type(), text })
+  })
+  page.on('pageerror', (e) => logs.push({ type: 'pageerror', text: e.message }))
+
+  const qs = new URLSearchParams()
+  if (props) qs.set('props', JSON.stringify(props))
+  if (model !== undefined) qs.set('model', JSON.stringify(model))
+  if (count) qs.set('count', String(count))
+  await page.goto('/?' + qs.toString())
+  await page.waitForFunction(() => window.__harness?.ready)
+  await expect(page.locator('.jsoneditor-vue .jsoneditor').first()).toBeVisible()
+
+  return {
+    page,
+    /** Problemas de console, exceto os explicitamente tolerados. */
+    problems: (...allowed) => logs.filter((l) => !allowed.some((re) => re.test(l.text))),
+    logs
+  }
+}
+
+export const events = (page, name) =>
+  page.evaluate((n) => window.__harness.events.filter((e) => !n || e.name === n), name)
+
+export const model = (page, i = 0) => page.evaluate((idx) => window.__harness.getModel(idx), i)
+
+/** Substitui o conteúdo do editor no modo text. */
+export async function typeInTextMode (page, text, i = 0) {
+  await page.locator('.jsoneditor-vue').nth(i).locator('textarea.jsoneditor-text').fill(text)
+}
+
+/** Abre o menu de modos e escolhe um (rótulo visível: Tree, Code, Form, Text, View). */
+export async function switchMode (page, label, i = 0) {
+  await page.locator('.jsoneditor-vue').nth(i).locator('button.jsoneditor-modes').click()
+  await page.locator('.jsoneditor-contextmenu').getByRole('button', { name: label, exact: true }).click()
+}
+
+export async function menuModes (page, i = 0) {
+  await page.locator('.jsoneditor-vue').nth(i).locator('button.jsoneditor-modes').click()
+  const items = await page.locator('.jsoneditor-contextmenu button.jsoneditor-type-modes').allInnerTexts()
+  await page.keyboard.press('Escape')
+  return items.map((s) => s.trim()).filter(Boolean)
+}

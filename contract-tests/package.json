@@ -1,0 +1,19 @@
+{
+  "name": "vue3-json-editor-contract-tests",
+  "private": true,
+  "type": "module",
+  "description": "Testes de contrato do pacote publicado: instala o vue3-json-editor como um usuário instalaria (versão do npm ou .tgz) e valida a API pública em Node e num browser real.",
+  "scripts": {
+    "test": "playwright test",
+    "test:node": "playwright test --project=node",
+    "test:browser": "playwright test --project=chromium",
+    "use-pkg": "node scripts/use-pkg.mjs",
+    "fixture": "vite --config fixture/vite.config.mjs"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.65.0",
+    "vite": "7.3.7",
+    "vue": "3.5.45",
+    "vue3-json-editor": "1.1.5"
+  }
+}
