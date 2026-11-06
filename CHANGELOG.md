@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [1.2.1](https://github.com/joaomede/vue3-json-editor/compare/v1.2.0...v1.2.1) (2026-11-06)
+
+### Upgrade notes
+
+* **Changing the `mode` prop after the editor is mounted now switches the mode.** Before, the change was ignored. If your app passes `mode` and changes it later, the editor now follows it. Setting `mode` to the mode the editor is already in (for example from a `@mode-change` handler) does nothing, and if the content is invalid JSON the editor stays in its current mode and emits `has-error`.
+
+### Bug Fixes
+
+* an unsupported `lang` (e.g. `"pt"`) with `show-btns` crashed the render with `Cannot read properties of undefined (reading 'save')`; it now falls back to English ([33c816e](https://github.com/joaomede/vue3-json-editor/commit/33c816e))
+* the `mode` prop is applied after the editor is mounted ([af0b4de](https://github.com/joaomede/vue3-json-editor/commit/af0b4de))
+
+### Documentation
+
+* README rewritten: full props and events reference, examples, builds and environments, compatibility and limitations ([763800e](https://github.com/joaomede/vue3-json-editor/commit/763800e))
+
 ## [1.2.0](https://github.com/joaomede/vue3-json-editor/compare/v1.1.5...v1.2.0) (2026-11-06)
 
 First release since 1.1.5. The public API is unchanged: same props, defaults, events, exports, `dist` file paths and CSS classes. Everything new is opt-in. It also includes the changes of an unpublished 1.1.6 entry, listed below.

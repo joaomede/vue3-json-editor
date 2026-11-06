@@ -300,7 +300,7 @@ Every change is checked by a contract test suite that installs the packed packag
 
 ## 🗺️ Project status and roadmap
 
-- **Current version: 1.2.0**, compatible with **Vue 3.2 to 3.5** (`^3.2.0`), using jsoneditor 10. See the [CHANGELOG](./CHANGELOG.md) for what changed and the upgrade notes.
+- **Current version: 1.2.1**, compatible with **Vue 3.2 to 3.5** (`^3.2.0`), using jsoneditor 10. See the [CHANGELOG](./CHANGELOG.md) for what changed and the upgrade notes.
 - **Coming soon: 2.x**, a new major version with significant and interesting changes to the library. It won't be backwards compatible with 1.x.
 
 Found a bug? Please [open an issue](https://github.com/joaomede/vue3-json-editor/issues) with your Vue version, your setup (Vite, Nuxt, webpack…) and a small example.
