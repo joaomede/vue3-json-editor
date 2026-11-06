@@ -1,13 +1,14 @@
-// Contrato no browser real. Referência: 1.1.5 publicada.
+// Contrato no browser real. Referência: 1.2.0 publicada (antes: 1.1.5).
 //
 // Convenção:
 //   test(...)        -> comportamento atual que NÃO pode mudar (contrato).
 //   test.fail(...)   -> bug conhecido ainda sem correção (issue no título). Falha de propósito;
 //                       quando a correção entrar, o Playwright acusa "expected to fail" -> trocar
 //                       por test(...) + fixedIn('<versão da correção>').
-//   fixedIn(v)       -> bug corrigido/recurso adicionado na versão v: falha esperada antes (ex.: 1.1.5)
-//                       (1.1.6 = "depois da 1.1.5": é a versão do package.json até o próximo release)
-//                       e contrato obrigatório de v em diante.
+//   fixedIn(v)       -> bug corrigido/recurso adicionado na versão v: falha esperada nas versões
+//                       publicadas anteriores e contrato obrigatório de v em diante. Use a próxima
+//                       versão (ex.: 1.2.1); o build local sempre conta como "v em diante".
+//                       ('1.1.6' nos testes antigos = "depois da 1.1.5", tudo o que entrou na 1.2.0.)
 import { test, expect } from '@playwright/test'
 import { createRequire } from 'node:module'
 import { KNOWN, cmp, fixedIn, pkgVersion, openEditor, events, model, typeInTextMode, typeWithIme, switchMode, menuModes } from './helpers.mjs'

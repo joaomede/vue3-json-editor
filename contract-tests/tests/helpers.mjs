@@ -9,12 +9,16 @@ export const cmp = (a, b) => {
   return 0
 }
 
+// Build local (npm run test:contract): ainda carrega a versão do último release no package.json,
+// mas contém as correções da próxima versão.
+const localBuild = process.env.V3JE_LOCAL_BUILD === '1'
+
 /**
- * Bug corrigido na versão `version`: em versões anteriores do pacote o teste é falha esperada;
- * de `version` em diante é contrato obrigatório. Chamar no início do teste.
+ * Bug corrigido na versão `version`: em versões publicadas anteriores o teste é falha esperada;
+ * de `version` em diante (e no build local) é contrato obrigatório. Chamar no início do teste.
  */
 export function fixedIn (version) {
-  test.fail(cmp(pkgVersion, version) < 0, `bug presente antes da ${version}`)
+  test.fail(!localBuild && cmp(pkgVersion, version) < 0, `bug presente antes da ${version}`)
 }
 
 // Warnings que sabemos que vêm do pacote e estão associados a issues abertas.

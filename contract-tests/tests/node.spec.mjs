@@ -1,5 +1,5 @@
 // Contrato em Node: o pacote precisa carregar fora do browser (SSR/Nuxt, test runners em ambiente node)
-// e renderizar no servidor sem erro. Referência: 1.1.5 publicada.
+// e renderizar no servidor sem erro. Referência: 1.2.0 publicada (antes: 1.1.5).
 import { test, expect } from '@playwright/test'
 import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'
@@ -83,10 +83,13 @@ test.describe(`vue3-json-editor@${pkg.version} em Node`, () => {
   })
 
   test('jsdom via CommonJS (como num teste Jest do app): monta e cria o editor sem erros', () => {
+    // Só carregar o jsdom leva ~28 s com o repo em /mnt/d (WSL): quase todo o tempo é stat de arquivo
+    // no disco do Windows, não o pacote. Limite folgado para não falhar com a bateria em paralelo.
+    test.setTimeout(120_000)
     const script = fileURLToPath(new URL('../fixture/jsdom-mount.cjs', import.meta.url))
     let out
     try {
-      out = execFileSync(process.execPath, [script], { encoding: 'utf8', stdio: 'pipe', timeout: 30_000 })
+      out = execFileSync(process.execPath, [script], { encoding: 'utf8', stdio: 'pipe', timeout: 100_000 })
     } catch (e) {
       throw new Error(String(e.stdout) + String(e.stderr))
     }
