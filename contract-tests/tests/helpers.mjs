@@ -3,7 +3,7 @@ import { createRequire } from 'node:module'
 
 export const pkgVersion = createRequire(import.meta.url)('vue3-json-editor/package.json').version
 
-const cmp = (a, b) => {
+export const cmp = (a, b) => {
   const [pa, pb] = [a, b].map((v) => v.split(/[.-]/).slice(0, 3).map(Number))
   for (let i = 0; i < 3; i++) if (pa[i] !== pb[i]) return pa[i] - pb[i]
   return 0

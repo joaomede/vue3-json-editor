@@ -17,6 +17,10 @@ import { Vue3JsonEditor } from 'vue3-json-editor'
 
 const params = new URLSearchParams(location.search)
 const props = params.has('props') ? JSON.parse(params.get('props')) : {}
+// JSON não carrega funções: `options.onChange: "record"` vira um callback do "usuário" que só conta chamadas
+if (props.options?.onChange === 'record') {
+  props.options.onChange = () => { window.__harness.userOnChangeCalls++ }
+}
 const initialModel = params.has('model')
   ? JSON.parse(params.get('model'))
   : { hello: 'world', n: 1, nested: { a: [1, 2, 3] } }
@@ -61,6 +65,7 @@ const app = createApp({
 window.__harness = {
   events,
   editors,
+  userOnChangeCalls: 0,
   getModel: (i = 0) => structuredClone(toRaw(models[i])),
   setModel: (i, v) => { models[i] = v },
   unmount: () => app.unmount()

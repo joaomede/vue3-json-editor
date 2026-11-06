@@ -3,6 +3,7 @@
 import { test, expect } from '@playwright/test'
 import { execFileSync } from 'node:child_process'
 import { createRequire } from 'node:module'
+import { fileURLToPath } from 'node:url'
 
 const require = createRequire(import.meta.url)
 const pkg = require('vue3-json-editor/package.json')
@@ -51,6 +52,19 @@ test.describe(`vue3-json-editor@${pkg.version} em Node`, () => {
     const r = runNode("const m = await import('vue3-json-editor'); console.log(typeof m.Vue3JsonEditor)", { esm: true })
     expect(r.out).toBe('object')
     expect(r.ok).toBe(true)
+  })
+
+  test('jsdom via CommonJS (como num teste Jest do app): monta e cria o editor sem erros', () => {
+    const script = fileURLToPath(new URL('../fixture/jsdom-mount.cjs', import.meta.url))
+    let out
+    try {
+      out = execFileSync(process.execPath, [script], { encoding: 'utf8', stdio: 'pipe', timeout: 30_000 })
+    } catch (e) {
+      throw new Error(String(e.stdout) + String(e.stderr))
+    }
+    const r = JSON.parse(out)
+    expect(r.errors).toEqual([])
+    expect(r.editorRendered).toBe(true)
   })
 
   test('SSR: renderToString funciona, sem warnings, com o markup esperado', () => {

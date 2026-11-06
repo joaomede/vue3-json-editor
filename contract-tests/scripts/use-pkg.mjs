@@ -1,20 +1,22 @@
-// Troca o pacote sob teste sem alterar o package.json.
-//   npm run use-pkg -- 1.1.5                 -> versão publicada no npm
+// Troca o pacote sob teste (e/ou a versão do Vue) sem alterar o package.json.
+//   npm run use-pkg -- 1.1.5                          -> versão publicada no npm
 //   npm run use-pkg -- ../vue3-json-editor-1.2.0.tgz  -> build local empacotado com `npm pack`
-//   npm run use-pkg -- vue@3.2.47           -> troca a versão do Vue (matriz)
+//   npm run use-pkg -- <tgz ou versão> vue@3.2.47     -> combina com outra versão do Vue (matriz)
+// Passe tudo numa chamada só: cada `npm install --no-save` desfaz o --no-save anterior.
 import { execSync } from 'node:child_process'
 import { resolve } from 'node:path'
 
-const spec = process.argv[2]
-if (!spec) {
-  console.error('uso: npm run use-pkg -- <versão | caminho.tgz | pacote@versão>')
+const specs = process.argv.slice(2)
+if (!specs.length) {
+  console.error('uso: npm run use-pkg -- <versão | caminho.tgz> [pacote@versão ...]')
   process.exit(1)
 }
 
-let target
-if (spec.endsWith('.tgz')) target = `vue3-json-editor@file:${resolve(spec)}`
-else if (/^\d/.test(spec)) target = `vue3-json-editor@${spec}`
-else target = spec
+const targets = specs.map((spec) => {
+  if (spec.endsWith('.tgz')) return `"vue3-json-editor@file:${resolve(spec)}"`
+  if (/^\d/.test(spec)) return `vue3-json-editor@${spec}`
+  return spec
+})
 
-execSync(`npm install --no-save --no-audit --no-fund ${target}`, { stdio: 'inherit' })
+execSync(`npm install --no-save --no-audit --no-fund ${targets.join(' ')}`, { stdio: 'inherit' })
 execSync('node -p "\'vue3-json-editor \' + require(\'vue3-json-editor/package.json\').version + \' | vue \' + require(\'vue/package.json\').version"', { stdio: 'inherit' })

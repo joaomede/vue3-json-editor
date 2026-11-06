@@ -23,3 +23,6 @@ h(Vue3JsonEditor, { modelValue: [1, 2, 3] })
 // os tipos não podem ser `any`: prop com tipo errado tem que dar erro
 // @ts-expect-error mode é string
 h(Vue3JsonEditor, { mode: 123 })
+
+// prop `options` (repasse ao jsoneditor) — a partir da 1.2.0
+export const withOptions = () => h(Vue3JsonEditor, { options: { navigationBar: true } })

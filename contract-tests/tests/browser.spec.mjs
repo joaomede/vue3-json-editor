@@ -5,7 +5,8 @@
 //   test.fail(...)   -> bug conhecido ainda sem correção (issue no título). Falha de propósito;
 //                       quando a correção entrar, o Playwright acusa "expected to fail" -> trocar
 //                       por test(...) + fixedIn('<versão da correção>').
-//   fixedIn(v)       -> bug corrigido na versão v: é falha esperada em versões anteriores (ex.: 1.1.5)
+//   fixedIn(v)       -> bug corrigido/recurso adicionado na versão v: falha esperada antes (ex.: 1.1.5)
+//                       (1.1.6 = "depois da 1.1.5": é a versão do package.json até o próximo release)
 //                       e contrato obrigatório de v em diante.
 import { test, expect } from '@playwright/test'
 import { createRequire } from 'node:module'
@@ -74,6 +75,42 @@ test.describe(`vue3-json-editor@${pkg.version} no browser`, () => {
       const { problems } = await openEditor(page, { props: { expandedOnStart: true } })
       await expect(page.locator('.jsoneditor-collapsed')).toHaveCount(0)
       expect(problems()).toEqual([])
+    })
+  })
+
+  test.describe('layout padrão', () => {
+    // As barras extras do jsoneditor 10 mudam a altura do editor; por padrão ficam desligadas
+    // para não deslocar o layout de quem atualiza. Opt-in via prop `options`.
+    for (const mode of ['tree', 'code', 'text']) {
+      test(`mode="${mode}": sem barra de navegação nem barra de status por padrão`, async ({ page }) => {
+        await openEditor(page, { props: { mode } })
+        await expect(page.locator('.jsoneditor-navigation-bar')).toHaveCount(0)
+        await expect(page.locator('.jsoneditor-statusbar')).toHaveCount(0)
+      })
+    }
+  })
+
+  test.describe('prop options (repasse ao jsoneditor)', () => {
+    test('options liga recursos do jsoneditor (navigationBar, statusBar)', async ({ page }) => {
+      fixedIn('1.1.6')
+      await openEditor(page, { props: { options: { navigationBar: true } } })
+      await expect(page.locator('.jsoneditor-navigation-bar')).toHaveCount(1)
+      await openEditor(page, { props: { mode: 'text', options: { statusBar: true } } })
+      await expect(page.locator('.jsoneditor-statusbar')).toHaveCount(1)
+    })
+
+    test('options não substitui os callbacks do componente: json-change continua sendo emitido', async ({ page }) => {
+      fixedIn('1.1.6')
+      await openEditor(page, { props: { mode: 'text', options: { onChange: 'record' } } })
+      await typeInTextMode(page, '{"x": 1}')
+      await expect.poll(() => events(page, 'json-change')).toEqual([{ i: 0, name: 'json-change', payload: { x: 1 } }])
+      expect(await page.evaluate(() => window.__harness.userOnChangeCalls)).toBeGreaterThan(0)
+    })
+
+    test('props mode/modes têm precedência sobre options.mode/options.modes', async ({ page }) => {
+      await openEditor(page, { props: { mode: 'text', modes: ['text', 'tree'], options: { mode: 'code', modes: ['code'] } } })
+      await expect(page.locator('.jsoneditor-vue > .jsoneditor')).toHaveClass(/jsoneditor-mode-text/)
+      expect(await menuModes(page)).toEqual(['Text', 'Tree'])
     })
   })
 
