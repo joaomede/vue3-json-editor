@@ -10,7 +10,7 @@
 //                       e contrato obrigatório de v em diante.
 import { test, expect } from '@playwright/test'
 import { createRequire } from 'node:module'
-import { KNOWN, cmp, fixedIn, pkgVersion, openEditor, events, model, typeInTextMode, switchMode, menuModes } from './helpers.mjs'
+import { KNOWN, cmp, fixedIn, pkgVersion, openEditor, events, model, typeInTextMode, typeWithIme, switchMode, menuModes } from './helpers.mjs'
 
 const pkg = createRequire(import.meta.url)('vue3-json-editor/package.json')
 const DEFAULT_MODEL = { hello: 'world', n: 1, nested: { a: [1, 2, 3] } }
@@ -346,6 +346,39 @@ test.describe(`vue3-json-editor@${pkg.version} no browser`, () => {
       await page.locator('.jsoneditor-outer').click()
       await expect.poll(() => events(page, 'attr:onClick')).toEqual([{ i: 0, name: 'attr:onClick', payload: { domEvent: 'click' } }])
     })
+  })
+
+  test.describe('#25 digitação via IME (chinês)', () => {
+    // posiciona o cursor logo depois de "ab" no valor de {"type":"ab"}, em cada modo
+    const placeCursor = {
+      code: async (page) => {
+        await page.locator('.ace_line', { hasText: '"type"' }).click({ force: true }) // Ace intercepta o clique
+        await page.keyboard.press('End')
+        await page.keyboard.press('ArrowLeft') // antes da aspa final
+      },
+      text: (page) => page.locator('textarea.jsoneditor-text').evaluate((ta) => {
+        ta.focus()
+        const i = ta.value.indexOf('ab') + 2
+        ta.setSelectionRange(i, i)
+      }),
+      tree: async (page) => {
+        await page.locator('div.jsoneditor-value', { hasText: 'ab' }).click()
+        await page.keyboard.press('End')
+      }
+    }
+    placeCursor.form = placeCursor.tree
+
+    for (const mode of ['code', 'text', 'tree', 'form']) {
+      test(`mode="${mode}": compor "ni hao" e confirmar "你好" insere o texto em chinês`, async ({ page }) => {
+        // o Ace do jsoneditor 5 (1.1.5) perdia a composição: o resultado era "abn"
+        if (mode === 'code') fixedIn('1.1.6')
+        const { problems } = await openEditor(page, { props: { mode }, model: { type: 'ab' } })
+        await placeCursor[mode](page)
+        await typeWithIme(page, ['n', 'ni', 'ni h', 'ni ha', 'ni hao'], '你好')
+        await expect.poll(async () => (await events(page, 'json-change')).at(-1)?.payload).toEqual({ type: 'ab你好' })
+        expect(problems()).toEqual([])
+      })
+    }
   })
 
   test.describe('troca de modo', () => {

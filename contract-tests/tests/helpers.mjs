@@ -79,3 +79,17 @@ export async function menuModes (page, i = 0) {
   await page.keyboard.press('Escape')
   return items.map((s) => s.trim()).filter(Boolean)
 }
+
+/**
+ * Digita via IME (composição), como um teclado chinês/japonês: mostra cada etapa da composição
+ * (ex.: 'n', 'ni', 'ni hao') e confirma com o texto final (ex.: '你好'). Usa o protocolo do
+ * Chromium (Input.imeSetComposition), que gera compositionstart/update/end reais no elemento focado.
+ */
+export async function typeWithIme (page, steps, text) {
+  const cdp = await page.context().newCDPSession(page)
+  for (const t of steps) {
+    await cdp.send('Input.imeSetComposition', { text: t, selectionStart: t.length, selectionEnd: t.length })
+  }
+  await cdp.send('Input.insertText', { text })
+  await cdp.detach()
+}
