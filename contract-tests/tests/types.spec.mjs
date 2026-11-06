@@ -17,10 +17,11 @@ const root = fileURLToPath(new URL('..', import.meta.url))
 // O projeto "do usuário" fica num diretório temporário fora do repositório, com o node_modules da
 // bateria ligado por symlink (preserveSymlinks). Assim o TypeScript não enxerga o node_modules da
 // raiz do repo — que tem outra versão do Vue — e a resolução é a de um app real.
-function typecheck (compilerOptions) {
+function typecheck (compilerOptions, { bare = false } = {}) {
   const dir = mkdtempSync(join(tmpdir(), 'v3je-types-'))
   symlinkSync(join(root, 'node_modules'), join(dir, 'node_modules'), 'dir')
-  copyFileSync(join(root, 'fixture/types/consumer.ts'), join(dir, 'consumer.ts'))
+  if (bare) writeFileSync(join(dir, 'consumer.ts'), "import { h } from 'vue'\nexport const x = h('div')\n")
+  else copyFileSync(join(root, 'fixture/types/consumer.ts'), join(dir, 'consumer.ts'))
   writeFileSync(join(dir, 'tsconfig.json'), JSON.stringify({
     compilerOptions: {
       target: 'ES2020',
@@ -52,6 +53,10 @@ test.describe(`vue3-json-editor@${pkg.version} tipos (vue ${vueVersion})`, () =>
   })
 
   test('compila num projeto TS estrito (skipLibCheck: false)', () => {
+    // Vue antigo (ex.: 3.2.0/3.2.30) tem erro nos próprios .d.ts com o TypeScript atual: um projeto
+    // que só importa 'vue' já falha. Checado no Vue instalado, não por lista de versões.
+    const bare = typecheck({ skipLibCheck: false }, { bare: true })
+    test.skip(!bare.ok, `os .d.ts do próprio vue ${vueVersion} não compilam sem skipLibCheck: ${bare.out.trim().split('\n')[0]}`)
     const r = typecheck({ skipLibCheck: false })
     expect(r.out).toBe('')
     expect(r.ok).toBe(true)

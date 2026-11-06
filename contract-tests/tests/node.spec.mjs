@@ -4,6 +4,7 @@ import { test, expect } from '@playwright/test'
 import { execFileSync } from 'node:child_process'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
+import { fixedIn } from './helpers.mjs'
 
 const require = createRequire(import.meta.url)
 const pkg = require('vue3-json-editor/package.json')
@@ -29,6 +30,21 @@ test.describe(`vue3-json-editor@${pkg.version} em Node`, () => {
   test('package.json: não declara "type": "module" com main CJS (quebraria import em Node)', () => {
     const mainIsCjs = !pkg.main.endsWith('.mjs')
     if (mainIsCjs) expect(pkg.type).not.toBe('module')
+  })
+
+  // #18 #29: com `vue` em dependencies (1.1.5), um app cujo Vue não satisfaz o range ganha uma
+  // segunda cópia do Vue dentro do pacote; o componente roda no "Vue errado": onMounted nunca
+  // dispara (editor não aparece, id "jsoneditor-vue-undefined") e expandedOnStart lança
+  // "Cannot read properties of null (reading 'expandAll')".
+  test('#18 #29 vue é peerDependency (nunca dependency): o pacote usa o Vue do app', () => {
+    fixedIn('1.1.6')
+    expect(pkg.dependencies?.vue).toBeUndefined()
+    expect(pkg.peerDependencies?.vue).toBeTruthy()
+  })
+
+  test('#18 #29 o pacote resolve a mesma cópia do Vue que o app', () => {
+    const fromPkg = createRequire(require.resolve('vue3-json-editor/package.json')).resolve('vue')
+    expect(fromPkg).toBe(require.resolve('vue'))
   })
 
   test('arquivos do dist citados no contrato existem', () => {
@@ -68,6 +84,16 @@ test.describe(`vue3-json-editor@${pkg.version} em Node`, () => {
   })
 
   test('SSR: renderToString funciona, sem warnings, com o markup esperado', () => {
+    // Limitação do próprio Vue em versões antigas (ex.: 3.2.0): no SSR, getCurrentInstance().uid é
+    // undefined até num componente vazio, e o id sai "jsoneditor-vue-undefined". Checado no Vue
+    // instalado, não por lista de versões, para não esconder bug do pacote.
+    const bare = runNode(`
+      const { createSSRApp, h, getCurrentInstance, defineComponent } = require('vue')
+      const { renderToString } = require('vue/server-renderer')
+      const C = defineComponent({ setup () { const i = getCurrentInstance(); return () => h('i', String(i && i.uid)) } })
+      renderToString(createSSRApp({ render: () => h(C) })).then(console.log)
+    `)
+    const vueSsrUid = /<i>\d+<\/i>/.test(bare.out)
     const r = runNode(`
       const { createSSRApp, h } = require('vue')
       const { renderToString } = require('vue/server-renderer')
@@ -86,7 +112,8 @@ test.describe(`vue3-json-editor@${pkg.version} em Node`, () => {
     const { html, warns } = JSON.parse(r.out)
     expect(warns).toEqual([])
     // sem show-btns: botão oculto (contrato real, apesar da README dizer default true)
-    expect(html[0]).toMatch(/^<div><div id="jsoneditor-vue-\d+" class="jsoneditor-vue"><\/div><!----><\/div>$/)
+    const id = vueSsrUid ? '\\d+' : 'undefined'
+    expect(html[0]).toMatch(new RegExp(`^<div><div id="jsoneditor-vue-${id}" class="jsoneditor-vue"></div><!----></div>$`))
     expect(html[1]).toContain('<div class="jsoneditor-btns"><button class="json-save-btn" type="button">SAVE</button></div>')
     expect(html[2]).toContain('>保存</button>')
   })

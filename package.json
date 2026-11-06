@@ -42,7 +42,7 @@
     "dev": "vite",
     "build": "node scripts/build.mjs",
     "test:contract": "node scripts/test-contract.mjs",
-    "test:contract:matrix": "node scripts/test-contract.mjs --vue=3.2.47,3.3.13,3.5.45",
+    "test:contract:matrix": "node scripts/test-contract.mjs --vue=3.2.0,3.2.47,3.3.13,3.5.45",
     "lint": "eslint --ext .ts,.tsx components",
     "commit": "git-cz",
     "release": "standard-version && git push --tags"
@@ -52,7 +52,7 @@
     "jsoneditor": "^10.4.3"
   },
   "peerDependencies": {
-    "vue": "^3.2.31"
+    "vue": "^3.2.0"
   },
   "devDependencies": {
     "@commitlint/cli": "^12.1.4",

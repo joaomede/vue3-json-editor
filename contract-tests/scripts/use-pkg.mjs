@@ -12,10 +12,14 @@ if (!specs.length) {
   process.exit(1)
 }
 
-const targets = specs.map((spec) => {
-  if (spec.endsWith('.tgz')) return `"vue3-json-editor@file:${resolve(spec)}"`
-  if (/^\d/.test(spec)) return `vue3-json-editor@${spec}`
-  return spec
+const targets = specs.flatMap((spec) => {
+  if (spec.endsWith('.tgz')) return [`"vue3-json-editor@file:${resolve(spec)}"`]
+  if (/^\d/.test(spec)) return [`vue3-json-editor@${spec}`]
+  // o Vue anterior ao 3.2.13 não traz o @vue/server-renderer: sem fixar a mesma versão, sobraria
+  // o da instalação anterior (outra versão) e o teste de SSR misturaria dois Vues
+  const vue = spec.match(/^vue@(.+)$/)
+  if (vue) return [spec, `@vue/server-renderer@${vue[1]}`]
+  return [spec]
 })
 
 execSync(`npm install --no-save --no-audit --no-fund ${targets.join(' ')}`, { stdio: 'inherit' })
