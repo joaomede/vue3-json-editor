@@ -40,14 +40,18 @@
   "license": "ISC",
   "scripts": {
     "dev": "vite",
-    "build": "vite build --mode development && vite build --mode production && tsc -p tsconfig.build.json",
+    "build": "node scripts/build.mjs",
     "test:contract": "node scripts/test-contract.mjs",
+    "test:contract:matrix": "node scripts/test-contract.mjs --vue=3.2.47,3.3.13,3.5.45",
     "lint": "eslint --ext .ts,.tsx components",
     "commit": "git-cz",
     "release": "standard-version && git push --tags"
   },
   "dependencies": {
     "core-js": "^3.21.1",
+    "jsoneditor": "^10.4.3"
+  },
+  "peerDependencies": {
     "vue": "^3.2.31"
   },
   "devDependencies": {
@@ -68,6 +72,7 @@
     "git-cz": "^4.7.6",
     "standard-version": "^9.3.0",
     "typescript": "^5.9.3",
-    "vite": "^8.3.6"
+    "vite": "^8.3.6",
+    "vue": "^3.5.45"
   }
 }

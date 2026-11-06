@@ -1,12 +1,18 @@
-import { ComponentPublicInstance, defineComponent, getCurrentInstance, onMounted, reactive, watch } from 'vue'
-import JsonEditor from './assets/jsoneditor'
-import jsonEditorCss from './assets/jsoneditor.css?inline'
+import { ComponentPublicInstance, defineComponent, getCurrentInstance, markRaw, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
+import jsonEditorCss from 'jsoneditor/dist/jsoneditor.min.css?inline'
 import componentCss from './style.css?inline'
 import { injectStyle } from './inject-style'
 
 // Os estilos entram no documento quando o pacote é importado (o usuário não importa CSS).
 injectStyle(jsonEditorCss)
 injectStyle(componentCss)
+
+// O jsoneditor só funciona no browser: ao ser carregado ele acessa `self`/`window`, o que
+// quebraria o import do pacote em Node (SSR, test runners). Por isso ele é carregado sob
+// demanda no onMounted, que nunca roda no servidor.
+function loadJsonEditor (): Promise<any> {
+  return import('jsoneditor').then((m: any) => m.default ?? m)
+}
 
 export const Vue3JsonEditor = defineComponent({
   props: {
@@ -29,10 +35,20 @@ export const Vue3JsonEditor = defineComponent({
     lang: {
       type: String,
       default: 'en'
+    },
+    // Opções repassadas ao jsoneditor na criação do editor (não reativas), por cima dos defaults
+    // do componente. Ex.: { navigationBar: true, statusBar: true, search: false }.
+    // `mode`/`modes` vêm das props de mesmo nome; onChange/onModeChange do usuário são chamados
+    // depois dos do componente.
+    options: {
+      type: Object,
+      default: () => ({})
     }
   },
   setup (props: any, { emit }) {
     const root = getCurrentInstance()?.root.proxy as ComponentPublicInstance
+    const container = ref<HTMLElement | null>(null)
+    let unmounted = false
 
     const state = reactive({
       editor: null as any,
@@ -65,42 +81,60 @@ export const Vue3JsonEditor = defineComponent({
         }
       }, { immediate: true })
 
-    onMounted(() => {
+    onMounted(async () => {
+      const JsonEditor = await loadJsonEditor()
+      // o componente pode ter sido desmontado enquanto o jsoneditor carregava
+      if (unmounted || !container.value) return
+
+      const userOptions = props.options || {}
       const options = {
+        // As barras de navegação/status do jsoneditor 10 mudam a altura do editor em relação à
+        // 1.1.5 (jsoneditor 5); ficam desligadas por padrão e podem ser ligadas via `options`.
+        navigationBar: false,
+        statusBar: false,
+        ...userOptions,
         mode: props.mode,
         modes: props.modes,
         onChange () {
-          try {
-            const json = state.editor.get()
-            state.json = json
-            state.error = false
-            emit('json-change', json)
-            state.internalChange = true
-            emit('input', json)
-            root.$nextTick(function () {
-              state.internalChange = false
-            })
-          } catch (e) {
-            state.error = true
-            emit('has-error', e)
-          }
+          handleChange()
+          if (typeof userOptions.onChange === 'function') userOptions.onChange()
         },
-        onModeChange (mode) {
-          emit('mode-change', mode)
-          state.expandedModes.includes(mode) && expandAll()
+        onModeChange (newMode: string, oldMode: string) {
+          emit('mode-change', newMode)
+          state.expandedModes.includes(newMode) && expandAll()
+          if (typeof userOptions.onModeChange === 'function') userOptions.onModeChange(newMode, oldMode)
         }
       }
-      state.editor = new JsonEditor(
-        document.querySelector(`#${state.uid}`),
-        options,
-        state.json
-      )
+      // markRaw: a instância do jsoneditor não deve virar um Proxy reativo do Vue
+      state.editor = markRaw(new JsonEditor(container.value, options, state.json))
+      expandAll()
 
       emit('provide-editor', state.editor)
     })
 
+    function handleChange () {
+      try {
+        const json = state.editor.get()
+        state.json = json
+        state.error = false
+        emit('json-change', json)
+        state.internalChange = true
+        emit('input', json)
+        root.$nextTick(function () {
+          state.internalChange = false
+        })
+      } catch (e) {
+        state.error = true
+        emit('has-error', e)
+      }
+    }
+
+    onBeforeUnmount(() => {
+      unmounted = true
+    })
+
     function expandAll () {
-      if (props.expandedOnStart && state.expandedModes.includes(props.mode)) {
+      if (state.editor && props.expandedOnStart && state.expandedModes.includes(props.mode)) {
         (state.editor as any).expandAll()
       }
     }
@@ -116,7 +150,7 @@ export const Vue3JsonEditor = defineComponent({
     return () => {
       return (
         <div>
-          <div id={state.uid} class={'jsoneditor-vue'}></div>
+          <div id={state.uid} class={'jsoneditor-vue'} ref={container}></div>
           {props.showBtns !== false && (
             <div class={'jsoneditor-btns'}>
               <button

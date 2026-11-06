@@ -22,18 +22,24 @@ npm run build
 
 # build, pack and run the contract test suite (contract-tests/) against the packed package
 npm run test:contract
+
+# same, once per supported Vue version (3.2, 3.3, 3.5)
+npm run test:contract:matrix
 ```
 
 ## Component properties
 
 v-model：bind the [json object]  
-:show-btns: boolean, show the save button, default: true  
+:show-btns: boolean, show the save button, default: false (the button is only shown when `show-btns` is set)  
 :expandedOnStart: boolean, expand the JSON editor on start for the modes 'tree', 'view', and 'form', default: false  
 :mode: string, default: tree  
+:modes: array, modes available in the mode menu, default: ['tree', 'code', 'form', 'text', 'view']  
 :lang: string, default: en  
+:options: object, extra [jsoneditor options](https://github.com/josdejong/jsoneditor/blob/master/docs/api.md#configuration-options) applied when the editor is created, default: {} (e.g. `{ navigationBar: true, statusBar: true }`)  
 @json-change: on json changed  
 @json-save: on json save  
 @mode-change: on editor mode change, return the mode string  
+@provide-editor: after the editor is created, returns the underlying [jsoneditor](https://github.com/josdejong/jsoneditor) instance  
 @has-error: on error  
 
 # How to use

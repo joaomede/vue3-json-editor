@@ -12,5 +12,5 @@
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "types": []
   },
-  "include": ["components/**/*.ts", "components/**/*.tsx"]
+  "include": ["components/**/*.ts", "components/**/*.tsx", "types/**/*.d.ts"]
 }
