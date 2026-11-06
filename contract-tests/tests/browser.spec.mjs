@@ -10,7 +10,7 @@
 //                       e contrato obrigatório de v em diante.
 import { test, expect } from '@playwright/test'
 import { createRequire } from 'node:module'
-import { KNOWN, fixedIn, openEditor, events, model, typeInTextMode, switchMode, menuModes } from './helpers.mjs'
+import { KNOWN, cmp, fixedIn, pkgVersion, openEditor, events, model, typeInTextMode, switchMode, menuModes } from './helpers.mjs'
 
 const pkg = createRequire(import.meta.url)('vue3-json-editor/package.json')
 const DEFAULT_MODEL = { hello: 'world', n: 1, nested: { a: [1, 2, 3] } }
@@ -155,10 +155,57 @@ test.describe(`vue3-json-editor@${pkg.version} no browser`, () => {
       expect(await dataEvents(page)).toEqual([])
     })
 
-    test.fail('#24 v-model é two-way: editar atualiza o valor do pai (update:modelValue)', async ({ page }) => {
+    test('#24 v-model é two-way: editar atualiza o valor do pai (update:modelValue)', async ({ page }) => {
+      fixedIn('1.1.6')
       await openEditor(page, { props: { mode: 'text' } })
       await typeInTextMode(page, '{"x": 42}')
       await expect.poll(() => model(page), { timeout: 2000 }).toEqual({ x: 42 })
+      expect(await events(page, 'update:modelValue')).toEqual([{ i: 0, name: 'update:modelValue', payload: { x: 42 } }])
+    })
+
+    test('#24 ordem dos eventos numa edição: json-change, input, update:modelValue', async ({ page }) => {
+      fixedIn('1.1.6')
+      await openEditor(page, { props: { mode: 'text' } })
+      await typeInTextMode(page, '{"x": 42}')
+      await expect.poll(() => events(page, 'update:modelValue')).toHaveLength(1)
+      const names = (await dataEvents(page)).filter((e) => !e.payload?.domEvent).map((e) => e.name)
+      expect(names).toEqual(['json-change', 'input', 'update:modelValue'])
+    })
+
+    test('#24 o valor que volta pelo v-model não é reaplicado no editor (sem reformatar/resetar o texto)', async ({ page }) => {
+      await openEditor(page, { props: { mode: 'text' } })
+      // digitação tecla a tecla, como um usuário: se o v-model reaplicasse o valor no editor,
+      // o jsoneditor reformataria o texto e o cursor pularia no meio da digitação
+      const ta = page.locator('textarea.jsoneditor-text')
+      await ta.fill('')
+      await ta.pressSequentially('{"a": 1, "b": [1, 2]}', { delay: 15 })
+      await page.waitForTimeout(300)
+      expect(await ta.inputValue()).toBe('{"a": 1, "b": [1, 2]}')
+      if (cmp(pkgVersion, '1.1.6') >= 0) await expect.poll(() => model(page)).toEqual({ a: 1, b: [1, 2] })
+    })
+
+    test('#24 modo tree: editar um valor atualiza o pai e não fecha os nós expandidos', async ({ page }) => {
+      await openEditor(page, { props: { expandedOnStart: true } })
+      const expandedBefore = await page.locator('.jsoneditor-expanded').count()
+      const value = page.locator('.jsoneditor-tree div.jsoneditor-value', { hasText: 'world' })
+      await value.click()
+      await page.keyboard.press('ControlOrMeta+A')
+      await page.keyboard.type('mundo')
+      await page.keyboard.press('Tab') // sai do campo -> jsoneditor confirma a edição
+      await expect.poll(() => events(page, 'json-change')).toHaveLength(1)
+      expect((await events(page, 'json-change'))[0].payload).toEqual({ hello: 'mundo', n: 1, nested: { a: [1, 2, 3] } })
+      await page.waitForTimeout(200)
+      expect(await page.locator('.jsoneditor-expanded').count()).toBe(expandedBefore)
+      if (cmp(pkgVersion, '1.1.6') >= 0) await expect.poll(() => model(page)).toEqual({ hello: 'mundo', n: 1, nested: { a: [1, 2, 3] } })
+    })
+
+    test('#24 depois de editar, o pai ainda consegue trocar o valor por fora', async ({ page }) => {
+      await openEditor(page, { props: { mode: 'text' } })
+      await typeInTextMode(page, '{"x": 1}')
+      await expect.poll(() => events(page, 'json-change')).toHaveLength(1)
+      await page.waitForTimeout(100)
+      await page.evaluate(() => window.__harness.setModel(0, { trocado: 2 }))
+      await expect.poll(async () => JSON.parse(await page.locator('textarea.jsoneditor-text').inputValue())).toEqual({ trocado: 2 })
     })
 
     test.fail('@input recebe só o JSON, nunca eventos nativos do DOM (falta declarar emits)', async ({ page }) => {

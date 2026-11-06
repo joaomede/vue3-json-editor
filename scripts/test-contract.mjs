@@ -20,7 +20,8 @@ const args = process.argv.slice(2)
 const noBuild = args.includes('--no-build')
 const vueArg = args.find((a) => a.startsWith('--vue='))
 const vueVersions = vueArg ? vueArg.slice('--vue='.length).split(',') : [null]
-const pwArgs = args.filter((a) => a !== '--no-build' && a !== vueArg).join(' ')
+// cada argumento vai entre aspas para o shell não interpretar caracteres como `#` ou `|`
+const pwArgs = args.filter((a) => a !== '--no-build' && a !== vueArg).map((a) => JSON.stringify(a)).join(' ')
 const run = (cmd, cwd = root) => execSync(cmd, { cwd, stdio: 'inherit' })
 
 if (!noBuild) run('npm run build')

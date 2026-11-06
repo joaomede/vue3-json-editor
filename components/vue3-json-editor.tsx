@@ -118,8 +118,11 @@ export const Vue3JsonEditor = defineComponent({
         state.json = json
         state.error = false
         emit('json-change', json)
+        // internalChange impede que o valor devolvido pelo pai (v-model) seja reaplicado no
+        // editor pelo watch de modelValue, o que reformataria o texto e resetaria o cursor
         state.internalChange = true
-        emit('input', json)
+        emit('input', json) // mantido por compatibilidade com quem escuta @input
+        emit('update:modelValue', json) // v-model two-way (#24)
         root.$nextTick(function () {
           state.internalChange = false
         })
