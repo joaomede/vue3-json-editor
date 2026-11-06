@@ -1,4 +1,4 @@
-// Contrato no browser real. Referência: 1.2.0 publicada (antes: 1.1.5).
+// Contrato no browser real. Referência: 1.2.1 publicada (antes: 1.2.0, 1.1.5).
 //
 // Convenção:
 //   test(...)        -> comportamento atual que NÃO pode mudar (contrato).

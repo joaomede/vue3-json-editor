@@ -7,7 +7,7 @@
 //   --no-build             usa o dist/ atual
 //   --vue=3.2.47,3.5.45    roda a bateria uma vez para cada versão do Vue (matriz)
 // Demais argumentos vão para o Playwright (ex.: --project=node, -g "UMD").
-// Ao final, a bateria volta para a referência (1.2.0 publicada) se tudo passar.
+// Ao final, a bateria volta para a referência (1.2.1 publicada) se tudo passar.
 // Com o build local, define V3JE_LOCAL_BUILD=1: o fixedIn() trata o build como "a próxima versão".
 import { execSync } from 'node:child_process'
 import { mkdtempSync, readdirSync, rmSync } from 'node:fs'
@@ -37,5 +37,5 @@ for (const vue of vueVersions) {
   execSync(`npx playwright test ${pwArgs}`, { cwd: contract, stdio: 'inherit', env: { ...process.env, V3JE_LOCAL_BUILD: '1' } })
 }
 
-run('npm run -s use-pkg -- 1.2.0', contract)
+run('npm run -s use-pkg -- 1.2.1', contract)
 rmSync(join(contract, 'fixture/.vite'), { recursive: true, force: true })

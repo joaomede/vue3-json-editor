@@ -1,5 +1,5 @@
 // Contrato em Node: o pacote precisa carregar fora do browser (SSR/Nuxt, test runners em ambiente node)
-// e renderizar no servidor sem erro. Referência: 1.2.0 publicada (antes: 1.1.5).
+// e renderizar no servidor sem erro. Referência: 1.2.1 publicada (antes: 1.2.0, 1.1.5).
 import { test, expect } from '@playwright/test'
 import { execFileSync } from 'node:child_process'
 import { readFileSync } from 'node:fs'

@@ -16,6 +16,6 @@
     "typescript": "^5.9.3",
     "vite": "7.3.7",
     "vue": "3.5.45",
-    "vue3-json-editor": "1.2.0"
+    "vue3-json-editor": "1.2.1"
   }
 }
