@@ -1,6 +1,6 @@
 {
   "name": "vue3-json-editor",
-  "version": "1.1.6",
+  "version": "1.2.0",
   "description": "A json editor of vue",
   "main": "dist/vue3-json-editor.cjs.prod.js",
   "module": "dist/vue3-json-editor.esm.prod.js",
@@ -41,6 +41,7 @@
   "scripts": {
     "dev": "vite",
     "build": "node scripts/build.mjs",
+    "prepublishOnly": "npm run build",
     "test:contract": "node scripts/test-contract.mjs",
     "test:contract:matrix": "node scripts/test-contract.mjs --vue=3.2.0,3.2.47,3.3.13,3.5.45",
     "lint": "eslint --ext .ts,.tsx components",
