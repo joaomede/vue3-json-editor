@@ -208,10 +208,26 @@ test.describe(`vue3-json-editor@${pkg.version} no browser`, () => {
       await expect.poll(async () => JSON.parse(await page.locator('textarea.jsoneditor-text').inputValue())).toEqual({ trocado: 2 })
     })
 
-    test.fail('@input recebe só o JSON, nunca eventos nativos do DOM (falta declarar emits)', async ({ page }) => {
+    test('@input recebe só o JSON, nunca eventos nativos do DOM (modo text)', async ({ page }) => {
+      fixedIn('1.1.6')
       await openEditor(page, { props: { mode: 'text' } })
       await typeInTextMode(page, '{"x": 42}')
       await expect.poll(() => events(page, 'json-change')).toHaveLength(1)
+      expect(await events(page, 'input')).toEqual([{ i: 0, name: 'input', payload: { x: 42 } }])
+    })
+
+    test('@input recebe só o JSON, nunca eventos nativos do DOM (modos tree e code)', async ({ page }) => {
+      fixedIn('1.1.6')
+      await openEditor(page)
+      await page.locator('.jsoneditor-tree div.jsoneditor-value', { hasText: 'world' }).click()
+      await page.keyboard.type('!')
+      await page.keyboard.press('Tab')
+      await expect.poll(() => events(page, 'json-change')).toHaveLength(1)
+      await switchMode(page, 'Code')
+      await page.locator('.ace_text-input').focus()
+      await page.keyboard.press('ControlOrMeta+End')
+      await page.keyboard.type(' ')
+      await page.waitForTimeout(500)
       expect((await events(page, 'input')).filter((e) => e.payload?.domEvent)).toEqual([])
     })
 
@@ -228,6 +244,22 @@ test.describe(`vue3-json-editor@${pkg.version} no browser`, () => {
       await switchMode(page, 'Text')
       await expect.poll(() => events(page, 'mode-change'), { timeout: 2000 })
         .toEqual([{ i: 0, name: 'mode-change', payload: 'text' }])
+    })
+  })
+
+  test.describe('atributos e listeners repassados à raiz (fallthrough)', () => {
+    test('class, style e data-* vão para a <div> raiz do componente', async ({ page }) => {
+      await openEditor(page, { props: { class: 'minha-classe', style: 'margin-top: 7px', 'data-x': '1' } })
+      const root = page.locator('.editor-slot > div').first()
+      await expect(root).toHaveClass(/minha-classe/)
+      await expect(root).toHaveAttribute('data-x', '1')
+      expect(await root.evaluate((el) => el.style.marginTop)).toBe('7px')
+    })
+
+    test('listener nativo não declarado (@click) continua chegando, com o evento do DOM', async ({ page }) => {
+      await openEditor(page, { props: { onClick: 'record' } })
+      await page.locator('.jsoneditor-outer').click()
+      await expect.poll(() => events(page, 'attr:onClick')).toEqual([{ i: 0, name: 'attr:onClick', payload: { domEvent: 'click' } }])
     })
   })
 

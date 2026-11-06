@@ -21,6 +21,13 @@ const props = params.has('props') ? JSON.parse(params.get('props')) : {}
 if (props.options?.onChange === 'record') {
   props.options.onChange = () => { window.__harness.userOnChangeCalls++ }
 }
+// Listener extra passado ao componente (ex.: `"onClick": "record"`), fora dos eventos do componente:
+// registra { name: 'attr:<key>', payload } em events — para testar o repasse (fallthrough) à raiz.
+for (const [key, value] of Object.entries(props)) {
+  if (/^on[A-Z]/.test(key) && value === 'record') {
+    props[key] = (payload) => events.push({ i: 0, name: `attr:${key}`, payload: serialize(key, payload) })
+  }
+}
 const initialModel = params.has('model')
   ? JSON.parse(params.get('model'))
   : { hello: 'world', n: 1, nested: { a: [1, 2, 3] } }

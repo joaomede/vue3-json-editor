@@ -45,6 +45,10 @@ export const Vue3JsonEditor = defineComponent({
       default: () => ({})
     }
   },
+  // Declarar os eventos impede que os listeners deles caiam na <div> raiz como listeners nativos
+  // (sem isso, @input recebia também os InputEvent do DOM de cada tecla digitada no editor).
+  // Listeners/atributos não declarados (@click, class, style...) continuam indo para a raiz.
+  emits: ['json-change', 'input', 'update:modelValue', 'json-save', 'has-error', 'mode-change', 'provide-editor'],
   setup (props: any, { emit }) {
     const root = getCurrentInstance()?.root.proxy as ComponentPublicInstance
     const container = ref<HTMLElement | null>(null)
