@@ -418,6 +418,48 @@ test.describe(`vue3-json-editor@${pkg.version} no browser`, () => {
     })
   })
 
+  test.describe('prop mode depois de montado', () => {
+    const editorMode = (page) => page.locator('.jsoneditor-vue > .jsoneditor').getAttribute('class')
+
+    test('mudar a prop mode troca o modo do editor, preserva o conteúdo e emite mode-change', async ({ page }) => {
+      fixedIn('1.2.1')
+      const { problems } = await openEditor(page)
+      await page.evaluate(() => window.__harness.setProp('mode', 'text'))
+      await expect.poll(() => editorMode(page)).toMatch(/jsoneditor-mode-text/)
+      expect(JSON.parse(await page.locator('textarea.jsoneditor-text').inputValue())).toEqual(DEFAULT_MODEL)
+      expect(await events(page, 'mode-change')).toEqual([{ i: 0, name: 'mode-change', payload: 'text' }])
+      await page.evaluate(() => window.__harness.setProp('mode', 'code'))
+      await expect.poll(() => editorMode(page)).toMatch(/jsoneditor-mode-code/)
+      expect(await events(page, 'json-change')).toEqual([])
+      expect(problems()).toEqual([])
+    })
+
+    test('prop mode igual ao modo atual (ex.: após trocar pelo menu) não recria o editor nem emite de novo', async ({ page }) => {
+      await openEditor(page)
+      await switchMode(page, 'Text')
+      await expect(page.locator('textarea.jsoneditor-text')).toBeVisible()
+      // o pai que acompanha o @mode-change devolve o mesmo modo pela prop
+      await page.locator('textarea.jsoneditor-text').evaluate((ta) => { ta.dataset.marker = '1' })
+      await page.evaluate(() => window.__harness.setProp('mode', 'text'))
+      await page.waitForTimeout(300)
+      await expect(page.locator('textarea.jsoneditor-text')).toHaveAttribute('data-marker', '1') // mesmo elemento
+      expect((await events(page, 'mode-change')).length).toBeLessThanOrEqual(1)
+    })
+
+    test('com JSON inválido, mudar a prop mode para tree mantém o modo atual e emite has-error', async ({ page }) => {
+      fixedIn('1.2.1')
+      const { problems } = await openEditor(page, { props: { mode: 'text' } })
+      await typeInTextMode(page, '{"x": ')
+      await expect.poll(async () => (await events(page, 'has-error')).length).toBeGreaterThan(0)
+      const before = (await events(page, 'has-error')).length
+      await page.evaluate(() => window.__harness.setProp('mode', 'tree'))
+      await expect.poll(async () => (await events(page, 'has-error')).length).toBe(before + 1)
+      expect(await editorMode(page)).toMatch(/jsoneditor-mode-text/)
+      expect(await page.locator('textarea.jsoneditor-text').inputValue()).toBe('{"x": ')
+      expect(problems()).toEqual([])
+    })
+  })
+
   test.describe('modo code (Ace)', () => {
     test('#18 #23 #28 abrir o modo code não gera "Could not load worker"', async ({ page }) => {
       fixedIn('1.1.6')

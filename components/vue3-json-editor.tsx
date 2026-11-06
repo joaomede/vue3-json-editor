@@ -89,6 +89,19 @@ export const Vue3JsonEditor = defineComponent({
         }
       }, { immediate: true })
 
+    // A prop mode também vale depois de montado (antes só era lida na criação do editor).
+    // setMode não faz nada se o modo já é o atual (ex.: pai que devolve o valor do @mode-change).
+    // Com JSON inválido o jsoneditor não consegue trocar: o editor fica no modo atual e o erro
+    // vai para has-error, como nas edições.
+    watch(() => props.mode, (mode) => {
+      if (!state.editor || !mode) return
+      try {
+        state.editor.setMode(mode)
+      } catch (e) {
+        emit('has-error', e)
+      }
+    })
+
     onMounted(async () => {
       const JsonEditor = await loadJsonEditor()
       // o componente pode ter sido desmontado enquanto o jsoneditor carregava
