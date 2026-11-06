@@ -184,7 +184,8 @@ export const Vue3JsonEditor = defineComponent({
                   onSave()
                 }}
                 disabled={state.error}
-              >{state.locale[props.lang].save}</button>
+                // lang sem tradução cai no inglês (antes quebrava a renderização)
+              >{(state.locale[props.lang] || state.locale.en).save}</button>
             </div>
           )}
         </div>

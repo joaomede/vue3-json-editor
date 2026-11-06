@@ -49,6 +49,19 @@ test.describe(`vue3-json-editor@${pkg.version} no browser`, () => {
       })
     }
 
+    test('lang não suportado (ex.: "pt") cai no inglês, sem quebrar a renderização', async ({ page }) => {
+      // até a 1.2.0: "Cannot read properties of undefined (reading 'save')" e o componente não renderizava
+      fixedIn('1.2.1')
+      const errors = []
+      page.on('pageerror', (e) => errors.push(e.message))
+      await page.goto('/?props=' + encodeURIComponent(JSON.stringify({ showBtns: true, lang: 'pt' })))
+      // na versão com o bug o mount lança e o fixture nunca fica "ready": falha rápido em vez de esperar o timeout
+      await page.waitForFunction(() => window.__harness?.ready, null, { timeout: 5000 })
+      await expect(page.locator('.json-save-btn')).toHaveText('SAVE')
+      await expect(page.locator('.jsoneditor-vue .jsoneditor')).toBeVisible()
+      expect(errors).toEqual([])
+    })
+
     for (const mode of ['tree', 'code', 'form', 'text', 'view']) {
       test(`mode="${mode}" abre no modo pedido`, async ({ page }) => {
         const { problems } = await openEditor(page, { props: { mode } })

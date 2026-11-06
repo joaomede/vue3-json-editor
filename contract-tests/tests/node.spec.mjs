@@ -59,6 +59,19 @@ test.describe(`vue3-json-editor@${pkg.version} em Node`, () => {
     }
   })
 
+  test('SSR com lang não suportado cai no inglês, sem erro', () => {
+    fixedIn('1.2.1')
+    const r = runNode(`
+      const { createSSRApp, h } = require('vue')
+      const { renderToString } = require('vue/server-renderer')
+      const { Vue3JsonEditor } = require('vue3-json-editor')
+      renderToString(createSSRApp({ render: () => h(Vue3JsonEditor, { showBtns: true, lang: 'pt' }) }))
+        .then(console.log, (e) => { console.error(e.message); process.exit(1) })
+    `)
+    expect(r.ok, r.out).toBe(true)
+    expect(r.out).toContain('>SAVE</button>')
+  })
+
   test('arquivos do dist citados no contrato existem', () => {
     for (const f of [
       'dist/vue3-json-editor.cjs.js', 'dist/vue3-json-editor.cjs.prod.js',
