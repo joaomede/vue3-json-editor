@@ -219,6 +219,19 @@ test.describe(`vue3-json-editor@${pkg.version} no browser`, () => {
       await expect(page.locator('.json-save-btn')).toBeEnabled()
     })
 
+    test('#22 modo code: JSON inválido emite has-error e desabilita o SAVE; ao corrigir, reabilita', async ({ page }) => {
+      await openEditor(page, { props: { mode: 'code', showBtns: true } })
+      await page.locator('.ace_text-input').focus()
+      await page.keyboard.press('Control+End')
+      await page.keyboard.type(' xx')
+      await expect.poll(async () => (await events(page, 'has-error')).length).toBeGreaterThan(0)
+      await expect(page.locator('.json-save-btn')).toBeDisabled()
+      await page.keyboard.press('Backspace')
+      await page.keyboard.press('Backspace')
+      await page.keyboard.press('Backspace')
+      await expect(page.locator('.json-save-btn')).toBeEnabled()
+    })
+
     test('SAVE emite json-save com o JSON atual', async ({ page }) => {
       await openEditor(page, { props: { mode: 'text', showBtns: true } })
       await typeInTextMode(page, '{"y": 1}')

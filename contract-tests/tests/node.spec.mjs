@@ -2,6 +2,7 @@
 // e renderizar no servidor sem erro. Referência: 1.1.5 publicada.
 import { test, expect } from '@playwright/test'
 import { execFileSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
 import { fixedIn } from './helpers.mjs'
@@ -45,6 +46,17 @@ test.describe(`vue3-json-editor@${pkg.version} em Node`, () => {
   test('#18 #29 o pacote resolve a mesma cópia do Vue que o app', () => {
     const fromPkg = createRequire(require.resolve('vue3-json-editor/package.json')).resolve('vue')
     expect(fromPkg).toBe(require.resolve('vue'))
+  })
+
+  // #21: a 1.1.5 embutia o core-js no bundle (com `1..toString`), que o minificador do build do
+  // usuário reescrevia como `1.toString` (SyntaxError em produção)
+  test('#21 o dist não embute core-js', () => {
+    fixedIn('1.1.6')
+    for (const f of ['cjs', 'cjs.prod', 'esm', 'esm.prod', 'umd', 'umd.prod']) {
+      const code = readFileSync(require.resolve(`vue3-json-editor/dist/vue3-json-editor.${f}.js`), 'utf8')
+      expect(code, f).not.toContain('__core-js_shared__')
+      expect(code, f).not.toMatch(/\b1\.\.toString\b/)
+    }
   })
 
   test('arquivos do dist citados no contrato existem', () => {
