@@ -26,3 +26,6 @@ h(Vue3JsonEditor, { mode: 123 })
 
 // prop `options` (repasse ao jsoneditor) — a partir da 1.2.0
 export const withOptions = () => h(Vue3JsonEditor, { options: { navigationBar: true } })
+
+// prop `height` (#32): número (px) ou string CSS — a partir da 1.2.0
+export const withHeight = () => [h(Vue3JsonEditor, { height: 400 }), h(Vue3JsonEditor, { height: '60vh' })]

@@ -43,7 +43,11 @@ export const Vue3JsonEditor = defineComponent({
     options: {
       type: Object,
       default: () => ({})
-    }
+    },
+    // Altura da área do editor (sem o botão SAVE), igual em todos os modos (#32).
+    // Número = px (ex.: 400); string = qualquer valor CSS (ex.: '60vh', '400px').
+    // Sem height, valem as alturas mínimas do style.css, como antes.
+    height: [String, Number]
   },
   // Declarar os eventos impede que os listeners deles caiam na <div> raiz como listeners nativos
   // (sem isso, @input recebia também os InputEvent do DOM de cada tecla digitada no editor).
@@ -154,10 +158,23 @@ export const Vue3JsonEditor = defineComponent({
       if (state.editor) state.editor.set(value)
     }
 
+    function fixedHeight (): string | undefined {
+      const h = props.height
+      if (h === undefined || h === null || h === '') return undefined
+      return typeof h === 'number' ? `${h}px` : String(h)
+    }
+
     return () => {
       return (
         <div>
-          <div id={state.uid} class={'jsoneditor-vue'} ref={container}></div>
+          <div
+            id={state.uid}
+            ref={container}
+            // a classe extra desliga os min-height do style.css, para alturas menores também funcionarem
+            class={fixedHeight() ? 'jsoneditor-vue jsoneditor-vue-fixed-height' : 'jsoneditor-vue'}
+            // sem height, nem passa `style` (no SSR do Vue 3.2, style={undefined} vira style="")
+            {...(fixedHeight() ? { style: { height: fixedHeight() } } : {})}
+          ></div>
           {props.showBtns !== false && (
             <div class={'jsoneditor-btns'}>
               <button

@@ -36,6 +36,7 @@ v-model：bind the [json object]
 :modes: array, modes available in the mode menu, default: ['tree', 'code', 'form', 'text', 'view']  
 :lang: string, default: en  
 :options: object, extra [jsoneditor options](https://github.com/josdejong/jsoneditor/blob/master/docs/api.md#configuration-options) applied when the editor is created, default: {} (e.g. `{ navigationBar: true, statusBar: true }`)  
+:height: number | string, height of the editor area (without the save button), the same in every mode. A number is in px (`:height="400"`), a string is any CSS value (`height="60vh"`). Default: not set (the editor keeps its default minimum height, which differs between modes). A percentage only works if the component's parent chain has a defined height  
 @json-change: on json changed  
 @json-save: on json save  
 @mode-change: on editor mode change, return the mode string  

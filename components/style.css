@@ -21,6 +21,11 @@
 .jsoneditor-vue div.jsoneditor-tree {
   min-height: 350px;
 }
+/* prop height: a altura vem do container, sem mínimos */
+.jsoneditor-vue.jsoneditor-vue-fixed-height .jsoneditor-outer,
+.jsoneditor-vue.jsoneditor-vue-fixed-height div.jsoneditor-tree {
+  min-height: 0;
+}
 .json-save-btn {
   background-color: #20a0ff;
   border: none;

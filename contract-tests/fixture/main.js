@@ -11,12 +11,14 @@
 //   getModel(i)       valor atual do v-model do editor i (no lado do "usuário")
 //   setModel(i, v)    altera o v-model do editor i por fora (parent -> editor)
 //   editors           instâncias recebidas via provide-editor
+//   setProp(k, v)     altera uma prop de todos os editores depois de montados
 //   unmount()         desmonta o app
-import { createApp, h, reactive, toRaw } from 'vue'
+import { createApp, h, reactive, shallowReactive, toRaw } from 'vue'
 import { Vue3JsonEditor } from 'vue3-json-editor'
 
 const params = new URLSearchParams(location.search)
-const props = params.has('props') ? JSON.parse(params.get('props')) : {}
+// shallowReactive: setProp() re-renderiza com a prop nova, sem tornar reativos os objetos internos (options)
+const props = shallowReactive(params.has('props') ? JSON.parse(params.get('props')) : {})
 // JSON não carrega funções: `options.onChange: "record"` vira um callback do "usuário" que só conta chamadas
 if (props.options?.onChange === 'record') {
   props.options.onChange = () => { window.__harness.userOnChangeCalls++ }
@@ -75,6 +77,7 @@ window.__harness = {
   userOnChangeCalls: 0,
   getModel: (i = 0) => structuredClone(toRaw(models[i])),
   setModel: (i, v) => { models[i] = v },
+  setProp: (k, v) => { props[k] = v },
   unmount: () => app.unmount()
 }
 

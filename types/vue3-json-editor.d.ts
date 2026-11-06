@@ -33,4 +33,6 @@ export declare const Vue3JsonEditor: DefineComponent<{
     type: ObjectConstructor
     default: () => Record<string, unknown>
   }
+  /** Altura da área do editor: número em px ou valor CSS (ex.: '60vh'). Sem valor, mantém a altura padrão. */
+  height: (StringConstructor | NumberConstructor)[]
 }>

@@ -19,6 +19,15 @@
       </label>
       <label><input v-model="showBtns" type="checkbox"> show-btns</label>
       <label><input v-model="expandedOnStart" type="checkbox"> expandedOnStart</label>
+      <label>
+        height
+        <select v-model="height">
+          <option :value="undefined">(default)</option>
+          <option :value="200">200</option>
+          <option :value="400">400</option>
+          <option value="60vh">60vh</option>
+        </select>
+      </label>
       <button type="button" @click="resetJson">reset</button>
     </div>
 
@@ -30,6 +39,7 @@
       :expanded-on-start="expandedOnStart"
       :mode="mode"
       :lang="lang"
+      :height="height"
       @json-change="log('json-change', $event)"
       @json-save="log('json-save', $event)"
       @has-error="log('has-error', String($event))"
@@ -59,6 +69,7 @@ const mode = ref('tree')
 const lang = ref('en')
 const showBtns = ref(true)
 const expandedOnStart = ref(false)
+const height = ref<number | string | undefined>(undefined)
 const events = ref<{ name: string, payload: string }[]>([])
 
 function log (name: string, payload: unknown) {

@@ -90,6 +90,91 @@ test.describe(`vue3-json-editor@${pkg.version} no browser`, () => {
     }
   })
 
+  test.describe('altura do editor (#32)', () => {
+    const ALL_MODES = ['tree', 'code', 'text', 'form', 'view']
+    // alturas (px) da caixa do editor e do conteúdo do modo atual (árvore, Ace ou textarea)
+    const heights = (page) => page.evaluate(() => {
+      const box = (s) => document.querySelector(s)?.getBoundingClientRect()
+      const content = box('.jsoneditor-tree') || box('.ace_editor') || box('textarea.jsoneditor-text')
+      return {
+        container: Math.round(box('.jsoneditor-vue').height),
+        editor: Math.round(box('.jsoneditor-vue > .jsoneditor').height),
+        content: Math.round(content.height),
+        contentOverflow: Math.round(content.bottom - box('.jsoneditor-vue').bottom)
+      }
+    })
+
+    // Sem a prop, as alturas mínimas do style.css continuam valendo (contrato da 1.1.5).
+    for (const mode of ALL_MODES) {
+      test(`sem height, mode="${mode}" mantém a altura padrão`, async ({ page }) => {
+        await openEditor(page, { props: { mode } })
+        const h = await heights(page)
+        expect(h.content).toBe(['code', 'text'].includes(mode) ? 150 : 350)
+        await expect(page.locator('.jsoneditor-vue')).not.toHaveAttribute('style', /height/)
+        await expect(page.locator('.jsoneditor-vue')).not.toHaveClass(/jsoneditor-vue-fixed-height/)
+      })
+    }
+
+    for (const mode of ALL_MODES) {
+      test(`height={300}: mode="${mode}" ocupa exatamente 300px`, async ({ page }) => {
+        fixedIn('1.1.6')
+        const { problems } = await openEditor(page, { props: { mode, height: 300 } })
+        const h = await heights(page)
+        expect(h.container).toBe(300)
+        expect(h.editor).toBe(300)
+        expect(h.contentOverflow).toBeLessThanOrEqual(0)
+        expect(problems()).toEqual([])
+      })
+    }
+
+    test('height como string CSS ("60vh")', async ({ page }) => {
+      fixedIn('1.1.6')
+      await openEditor(page, { props: { height: '60vh' } })
+      const vh = await page.evaluate(() => window.innerHeight)
+      expect((await heights(page)).container).toBe(Math.round(vh * 0.6))
+    })
+
+    test('altura menor que o mínimo padrão (200px): a árvore não cobre o botão SAVE', async ({ page }) => {
+      fixedIn('1.1.6')
+      await openEditor(page, { props: { height: 200, showBtns: true } })
+      const h = await heights(page)
+      expect(h.container).toBe(200)
+      expect(h.contentOverflow).toBeLessThanOrEqual(0)
+      // o botão é o elemento no topo da pilha no próprio centro (não está coberto)
+      const onTop = await page.evaluate(() => {
+        const r = document.querySelector('.json-save-btn').getBoundingClientRect()
+        return document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)?.classList.contains('json-save-btn')
+      })
+      expect(onTop).toBe(true)
+    })
+
+    test('trocar de tree para text mantém a altura', async ({ page }) => {
+      fixedIn('1.1.6')
+      await openEditor(page, { props: { height: 300 } })
+      await switchMode(page, 'Text')
+      await expect(page.locator('textarea.jsoneditor-text')).toBeVisible()
+      const h = await heights(page)
+      expect(h.container).toBe(300)
+      expect(h.content).toBeGreaterThan(250) // o textarea preenche a caixa (menos a barra de menu)
+    })
+
+    for (const mode of ['tree', 'code', 'text']) {
+      test(`mudar height depois de montado redimensiona o editor (mode="${mode}")`, async ({ page }) => {
+        fixedIn('1.1.6')
+        const { problems } = await openEditor(page, { props: { mode, height: 300 } })
+        const before = await heights(page)
+        await page.evaluate(() => window.__harness.setProp('height', 500))
+        await expect.poll(async () => (await heights(page)).container).toBe(500)
+        await expect.poll(async () => (await heights(page)).content).toBe(before.content + 200)
+        // e voltar a não ter height restaura o comportamento padrão
+        await page.evaluate(() => window.__harness.setProp('height', undefined))
+        await expect(page.locator('.jsoneditor-vue')).not.toHaveClass(/jsoneditor-vue-fixed-height/)
+        await expect.poll(async () => (await heights(page)).content).toBe(mode === 'tree' ? 350 : 150)
+        expect(problems()).toEqual([])
+      })
+    }
+  })
+
   test.describe('prop options (repasse ao jsoneditor)', () => {
     test('options liga recursos do jsoneditor (navigationBar, statusBar)', async ({ page }) => {
       fixedIn('1.1.6')
